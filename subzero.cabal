@@ -16,11 +16,13 @@
 
 name:                subzero
 version:             0.1.0.0
-synopsis: >
+synopsis:            Helps when going "seed values" -> alternatives and optional -> answers
+description: >
     Types to support turning structured collections of seed values
     into the same structures with alternatives along with some functions
     for regular uses.
-description:         Please see README.md
+
+    Please see README.md for more information
 homepage:            https://github.com/code5hot/subzero#readme
 license:             GPL-2
 license-file:        LICENSE
