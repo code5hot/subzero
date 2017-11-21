@@ -18,7 +18,7 @@ language: haskell
 
 ghc:
  - 8.0
-pre-install:
+before_install:
  - cabal update
 script:
  - cabal build
@@ -28,5 +28,5 @@ script:
 
  # check that the generated source-distribution can be built & installed
  - SRC_TGZ="$(awk 'BEGIN { "cabal info ." | getline; printf "dist/%s.tar.gz\n", $2; exit; }')";
-   find "$SRC_TGZ" -maxdepth 0;
+   find "$SRC_TGZ" -maxdepth 0 -quit;
    cabal install "$SRC_TGZ";
