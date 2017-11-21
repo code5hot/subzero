@@ -22,7 +22,7 @@ synopsis: >
     for regular uses.
 description:         Please see README.md
 homepage:            https://github.com/code5hot/subzero#readme
-license:             GPLv2
+license:             GPL-2
 license-file:        LICENSE
 author:              Tristan Wibberley
 maintainer:          tristan.wibberley@gmail.com
