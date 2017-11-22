@@ -25,6 +25,7 @@ script:
  - cabal test
  - cabal check
  - cabal sdist
+ - cabal haddock --hoogle --for-hackage --html --all --tests --executables --benchmarks --internal --hyperlink-source
 
  # check that the generated source-distribution can be built & installed
  - SRC_TGZ="$(awk 'BEGIN { "cabal info ." | getline; printf "dist/%s.tar.gz\n", $2; exit; }')";
