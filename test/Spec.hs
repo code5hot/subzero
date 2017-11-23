@@ -37,7 +37,7 @@ fizzbuzz indexes = let isMultiple n x = x `mod` n == 0 in
                        substitutions = fizzes <|> buzzes in
 
                    let words = collapse (++) substitutions in
-                   fromSubZero numbers words
+                   flatten numbers words
 
 main = let indexes = ZipList [1..] in -- mostly lattice-like uses, not nondeterminism
        let result = fizzbuzz indexes in
