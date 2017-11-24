@@ -64,21 +64,20 @@ import Data.Functor.Compose
 
    [@f@]: The major functor, overall mapping/view
    [@g@]: This has a a few key useful interpretations depending on
-          its instances, examples below.
+       its instances, examples below.
    [@a@]: Transformed/contained value type.
 
    Some example instances that you might want to rely on from @g@:
 
-   [@'Alternative'@] Superposition functor.
-    
-                     - How do individual items have a set of
-                       possible values?
-                     - How do those possible values collapse to
-                       form one optional value?
-                     - etc.
+   [@'Alternative'@]: Superposition functor.
 
-   [etc]             There are a lot of other utilities for this
-                     type.
+       - How do individual items have a set of
+       possible values?
+       - How do those possible values collapse to
+       form one optional value?
+       - etc.
+
+   [etc]: There are a lot of other utilities for this type.
 -}
 newtype SubZero f g a =
   SubZero { getSubZero :: Compose f g a }
@@ -123,11 +122,11 @@ reveal = SubZero . Compose . (pure <$>)
    should be some type like (@'Maybe' a@) or (@'Either' 'String' a@).
 
    [@f@]: This 'Functor' defines the broad scale
-          behaviours but its 'Alternative' instance is overridden.
-          This in particular might change during upcoming design
-          validation.
+       behaviours but its 'Alternative' instance is overridden.
+       This in particular might change during upcoming design
+       validation.
    [@g@]: This 'Functor' supplies the supercedent 'Alternative'
-          instance and thus the finer behaviours.
+       instance and thus the finer behaviours.
 -}
 points :: 
   (Functor f, Alternative g)
@@ -141,22 +140,22 @@ points f = SubZero . Compose . ((letStand f) <$>)
 -}
 
 {- | If the type of the possibilities concept is @'Maybe'@ then you can
-   use @'flatten'@ to provide default values for impossible points.
+    use @'flatten'@ to provide default values for impossible points.
 
-   - /NOTE/: This uses the applicative instance of the broad scale
-     @'Functor'@ which means exact behaviour can vary depending on
-     the type of @'Applicative' f@ because each has a different technique
-     to ensure a value is found for every point:
+    - /NOTE/: This uses the applicative instance of the broad scale
+        @'Functor'@ which means exact behaviour can vary depending on
+        the type of @'Applicative' f@ because each has a different technique
+        to ensure a value is found for every point:
 
-     [@list of a@]:    Cross-product; Providing all default values once
-                       for all points.
-     [@'ZipList' a@]:  zipWith; Providing one default value for each
-                       point until there are either no defaults remaining
-                       or no more points.
-     [@'Data.Functor.Identity' a@]: One default must surely be provided and it is
-                       used if a default is required.
-     [@'Maybe' a@]:    Not sure exactly what this does, TBC.
-     [@'Either' a@]:   Not sure exactly what this does, TBC.
+        [@list of a@]:    Cross-product; Providing all default values once
+            for all points.
+        [@'ZipList' a@]:  zipWith; Providing one default value for each
+            point until there are either no defaults remaining
+            or no more points.
+        [@'Data.Functor.Identity.Identity' a@]: One default must surely
+            be provided and it is used if a default is required.
+        [@'Maybe' a@]:    Not sure exactly what this does, TBC.
+        [@'Either' a@]:   Not sure exactly what this does, TBC.
 -}
 flatten ::
   (Applicative f)
@@ -168,13 +167,13 @@ flatten a (SubZero (Compose b)) = fromMaybe <$> a <*> b
 {- $restructors
 -}
 
-{- |   Take the alternatives embedded in the @'SubZero'@ and collapse them
-   with a combining function to a single @'Alternative'@ value or empty which
-   means no possible outcomes.
-       This is quite free in the type of the possibilities concept of the result.
-       It's compatible with @'Maybe'@ for further uses with @'flatten'@, but you can
-   retain behaviours of more sophisticated types. A consequence of this
-   is that you will probably need to state a type.
+{- | Take the alternatives embedded in the @'SubZero'@ and collapse them
+    with a combining function to a single @'Alternative'@ value or empty which
+    means no possible outcomes.
+     This is quite free in the type of the possibilities concept of the result.
+     It's compatible with @'Maybe'@ for further uses with @'flatten'@, but you can
+    retain behaviours of more sophisticated types. A consequence of this
+    is that you will probably need to state a type.
 -}
 collapse ::
   (Functor f, Foldable g, Alternative h)
