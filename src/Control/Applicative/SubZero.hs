@@ -139,8 +139,9 @@ points f = SubZero . Compose . ((letStand f) <$>)
 {- $destructors
 -}
 
-{- | If the type of the possibilities concept is @'Maybe'@ then you can
-    use @'flatten'@ to provide default values for impossible points.
+{- | If the type constructor of the possibilities concept is @'Maybe'@
+    then you can use @'flatten'@ to provide default values for
+    impossible points.
 
     - /NOTE/: This uses the applicative instance of the broad scale
         @'Functor'@ which means exact behaviour can vary depending on
