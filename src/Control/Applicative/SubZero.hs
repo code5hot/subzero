@@ -17,6 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 -}
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 {- |
     Module      : Control.Applicative.SubZero
@@ -32,15 +34,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 module Control.Applicative.SubZero
     ( SubZero
       -- * Constructors
-      -- $constructors
+      --  $constructors
     , points
     , reveal
       -- * Destructors
-      -- $destructors
+      --  $destructors
     , flatten
       -- * Restructors
-      -- $restructors
+      --  $restructors
+    , Superposition
+    , simplify
     , collapse
+    , keep
     ) where
 
 import Control.Applicative
@@ -87,21 +92,8 @@ instance (Applicative f, Alternative g) => Alternative (SubZero f g) where
   empty   = (SubZero . Compose) $ pure empty
   (SubZero (Compose a)) <|> (SubZero (Compose b)) = (SubZero . Compose) $ (<|>) <$> a <*> b
 
-foldlA1 :: (Foldable f, Alternative g) => (a -> a -> a) -> f a -> g a
-{- ^ A foldl for foldable alternatives, empty stays empty, nonempty becomes one alternative
-   The applicative you get back can be a different type than the input
--}
-foldlA1 f a | null a    = empty
-            | otherwise = pure $ foldl1 f a
 
-letStand :: (Alternative f) => (a -> Bool) -> a -> f a
-{- ^ Turns a value to @'Just'@ value or @'Nothing'@ based on a predicate assuming you use it in a
-   context that wants Maybe instead of some other representation of @'Alternative's@
--}
-letStand f x | f x       = pure x
-             | otherwise = empty
-
-{- $constructors
+{-  $constructors
 -}
 
 -- | Provides structure for values at the other end of a @'Functor'@
@@ -131,10 +123,10 @@ reveal = SubZero . Compose . (pure <$>)
 points :: 
   (Functor f, Alternative g)
     => (a -> Bool)   -- ^ A predicate that indicates whether a point
-                     -- is occupied by its original value or vacant.
+                     --  is occupied by its original value or vacant.
     -> f a           -- ^ The seed points with their values.
     -> SubZero f g a -- ^ The constructed @'SubZero'@ value.
-points f = SubZero . Compose . ((letStand f) <$>)
+points f = SubZero . Compose . (keep f <$>)
 
 {- $destructors
 -}
@@ -165,21 +157,70 @@ flatten ::
     -> f a               -- ^ Destructured container
 flatten a (SubZero (Compose b)) = fromMaybe <$> a <*> b
 
-{- $restructors
+{-  $restructors
 -}
 
-{- | Take the alternatives embedded in the @'SubZero'@ and collapse them
-    with a combining function to a single @'Alternative'@ value or empty which
-    means no possible outcomes.
-     This is quite free in the type of the possibilities concept of the result.
-     It's compatible with @'Maybe'@ for further uses with @'flatten'@, but you can
-    retain behaviours of more sophisticated types. A consequence of this
-    is that you will probably need to state a type.
+universal f (SubZero (Compose a)) = (SubZero . Compose) $ f <$> a
+
+-- {- | Take the alternatives embedded in the @'SubZero'@ and collapse them
+--     with a combining function to a single @'Alternative'@ value or empty which
+--     means no possible outcomes.
+--      It's compatible with @'Maybe'@ for further uses with @'flatten'@, but you can
+--     retain behaviours of more sophisticated types. A consequence of this
+--     is that you will probably need to state a type.
+-- -}
+
+{-  $instructors
+
+    Facilities, independent of SubZero, which are particularly useful when
+    applied with SubZero and its specific associated functions. They
+    provide details of how to achieve something in the other sections.
+
 -}
-collapse ::
-  (Functor f, Foldable g, Alternative h)
-    => (a -> a -> a) -- ^ combining function
-    -> SubZero f g a -- ^ full structure
-    -> SubZero f h a -- ^ collapsed structure
-collapse f (SubZero (Compose a)) = SubZero $ Compose $ (foldlA1 f) <$> a
+
+{- |
+    prop> collapse f empty = simplify empty
+    prop> collapse f (pure x) = simplify (pure x)
+    prop> collapse f (x <|> y) = pure (f x y)
+
+    @g@ must form a monoid under @f@ when @'empty'@ is the monoid's identity.
+-}
+class (Alternative g, Alternative h) => Superposition g h where
+  {- | Tries to convert from one alternative to another
+  -}
+  simplify :: g a -> Maybe (h a)
+
+  {- | Combines many alternatives into one using a function parameter.
+      @'empty'@ stays @'empty'@. This is quite free in the type of the result so
+      the user can choose whether to keep the same type to re-expand the
+      structure or to transform to a smaller type to avoid relying on
+      instances for certain behaviours.
+  -}
+  collapse :: (a -> a -> a) -- ^ combining function
+           -> g a -- ^ full structure
+           -> h a -- ^ collapsed structure
+
+{- | Superposition within a nondeterminism list (ie, [])
+-}
+instance (Alternative h) => Superposition [] h where
+  simplify   []   = Nothing 
+  simplify (a:[]) = Just $ pure a
+  simplify   _    = Nothing
+  collapse _ []   = empty
+  collapse f l    = pure $ foldl1 f l
+
+{- | Superposition within @'SubZero' * h@
+-}
+instance (Applicative f, Superposition g h) => Superposition (SubZero f g) (SubZero f h) where
+  -- | TODO: universal simplify, but if any points are @'Nothing'@ then the whole is @'Nothing'@
+  simplify   = undefined 
+  -- | universal collapse, each point is collapsed
+  collapse f = universal $ collapse f
+
+keep :: (Alternative f) => (a -> Bool) -> a -> f a
+{- ^ Turns a value "@a@" to @'Just' a@ or @'Nothing'@ based on a predicate assuming you use it in a
+   context that wants @'Maybe' a@ instead of some other representation of @'Alternative'@s
+-}
+keep f x | f x       = pure x
+         | otherwise = empty
 
