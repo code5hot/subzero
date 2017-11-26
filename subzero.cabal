@@ -15,7 +15,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 name:                subzero
-version:             0.1.0.3
+version:             0.1.0.4
 synopsis:            Helps when going "seed values" -> alternatives and optional -> answers
 description: >
     Types to support turning structured collections of seed values

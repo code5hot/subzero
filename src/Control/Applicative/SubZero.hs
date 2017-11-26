@@ -42,10 +42,15 @@ module Control.Applicative.SubZero
     , flatten
       -- * Restructors
       --  $restructors
+    , (<-$>)
+    , universal
     , Superposition
     , simplify
     , collapse
+      -- * Instructors
+      --  $instructors
     , keep
+    , keepIdentity
     ) where
 
 import Control.Applicative
@@ -53,6 +58,7 @@ import Data.Monoid
 import Data.Maybe
 import Data.Function
 import Data.Functor.Compose
+import Data.Functor.Identity
 
 {- |
    Converts a functor so that each point at the source has alternatives.
@@ -101,7 +107,7 @@ reveal
   :: (Functor f, Applicative g)
     => f a           -- ^ Initial flat structure
     -> SubZero f g a -- ^ enhanced structure, albeit with no changes
-reveal = SubZero . Compose . (pure <$>)
+reveal = (SubZero . Compose) . (pure <$>)
 
 {- | Turns a container of values to a container of either
    retained or destroyed values based on a predicate
@@ -126,7 +132,7 @@ points ::
                      --  is occupied by its original value or vacant.
     -> f a           -- ^ The seed points with their values.
     -> SubZero f g a -- ^ The constructed @'SubZero'@ value.
-points f = SubZero . Compose . (keep f <$>)
+points f d = keepIdentity f <-$> reveal d
 
 {- $destructors
 -}
@@ -160,7 +166,14 @@ flatten a (SubZero (Compose b)) = fromMaybe <$> a <*> b
 {-  $restructors
 -}
 
-universal f (SubZero (Compose a)) = (SubZero . Compose) $ f <$> a
+{- | fmap below the zeropoint
+-}
+(<-$>) :: (Functor f) => (g a -> h a) -> SubZero f g a -> SubZero f h a
+f <-$> (SubZero (Compose o)) = (SubZero . Compose) $ f <$> o
+
+{- | fmap below the zeropoint, function variant of <-$> operator
+-}
+universal f s = f <-$> s
 
 -- {- | Take the alternatives embedded in the @'SubZero'@ and collapse them
 --     with a combining function to a single @'Alternative'@ value or empty which
@@ -169,14 +182,6 @@ universal f (SubZero (Compose a)) = (SubZero . Compose) $ f <$> a
 --     retain behaviours of more sophisticated types. A consequence of this
 --     is that you will probably need to state a type.
 -- -}
-
-{-  $instructors
-
-    Facilities, independent of SubZero, which are particularly useful when
-    applied with SubZero and its specific associated functions. They
-    provide details of how to achieve something in the other sections.
-
--}
 
 {- |
     prop> collapse f empty = simplify empty
@@ -201,15 +206,20 @@ class (Alternative g, Alternative h) => Superposition g h where
            -> h a -- ^ collapsed structure
 
 {- | Superposition within a nondeterminism list (ie, [])
+    This is roughly the same as
+    @'SuperPosition' ('SubZero' 'Data.Functor.Identity.Identity' []) h@
+    but of course they have different instances of other typeclasses and
+    if that were really true then it would be SuperPositions of Identity
+    all the way down.
 -}
 instance (Alternative h) => Superposition [] h where
-  simplify   []   = Nothing 
+  simplify   []   = Just empty 
   simplify (a:[]) = Just $ pure a
   simplify   _    = Nothing
   collapse _ []   = empty
   collapse f l    = pure $ foldl1 f l
 
-{- | Superposition within @'SubZero' * h@
+{- | Superposition within @'SubZero' * g@
 -}
 instance (Applicative f, Superposition g h) => Superposition (SubZero f g) (SubZero f h) where
   -- | TODO: universal simplify, but if any points are @'Nothing'@ then the whole is @'Nothing'@
@@ -217,10 +227,21 @@ instance (Applicative f, Superposition g h) => Superposition (SubZero f g) (SubZ
   -- | universal collapse, each point is collapsed
   collapse f = universal $ collapse f
 
+{-  $instructors
+
+    Facilities, independent of SubZero, which are particularly useful when
+    applied with SubZero and its specific associated functions. They
+    provide details of how to achieve something in the other sections.
+
+-}
+
 keep :: (Alternative f) => (a -> Bool) -> a -> f a
 {- ^ Turns a value "@a@" to @'Just' a@ or @'Nothing'@ based on a predicate assuming you use it in a
    context that wants @'Maybe' a@ instead of some other representation of @'Alternative'@s
 -}
 keep f x | f x       = pure x
          | otherwise = empty
+
+keepIdentity :: (Alternative f) => (a -> Bool) -> Identity a -> f a
+keepIdentity f x = keep f $ runIdentity x
 
