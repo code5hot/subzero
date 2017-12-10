@@ -32,10 +32,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
     commentary with @some markup@.
 -}
 module Control.Applicative.SubZero
-    ( SubZero
-      -- * Constructors
+    ( -- * Constructors
       --  $constructors
-    , points
+      points
     , reveal
       -- * Destructors
       --  $destructors
@@ -44,6 +43,7 @@ module Control.Applicative.SubZero
       --  $restructors
     , (<-$>)
     , universal
+    , (<-|>)
     , Superposition
     , simplify
     , collapse
@@ -90,14 +90,6 @@ import Data.Functor.Identity
 
    [etc]: There are a lot of other utilities for this type.
 -}
-newtype SubZero f g a =
-  SubZero { getSubZero :: Compose f g a }
-  deriving (Show, Read, Eq, Ord, Functor, Applicative)
-
-instance (Applicative f, Alternative g) => Alternative (SubZero f g) where
-  empty   = (SubZero . Compose) $ pure empty
-  (SubZero (Compose a)) <|> (SubZero (Compose b)) = (SubZero . Compose) $ (<|>) <$> a <*> b
-
 
 {-  $constructors
 -}
@@ -106,8 +98,8 @@ instance (Applicative f, Alternative g) => Alternative (SubZero f g) where
 reveal
   :: (Functor f, Applicative g)
     => f a           -- ^ Initial flat structure
-    -> SubZero f g a -- ^ enhanced structure, albeit with no changes
-reveal = (SubZero . Compose) . (pure <$>)
+    -> Compose f g a -- ^ enhanced structure, albeit with no changes
+reveal = Compose . (pure <$>)
 
 {- | Turns a container of values to a container of either
    retained or destroyed values based on a predicate
@@ -131,7 +123,7 @@ points ::
     => (a -> Bool)   -- ^ A predicate that indicates whether a point
                      --  is occupied by its original value or vacant.
     -> f a           -- ^ The seed points with their values.
-    -> SubZero f g a -- ^ The constructed @'SubZero'@ value.
+    -> Compose f g a -- ^ The constructed @'SubZero'@ value.
 points f d = keepIdentity f <-$> reveal d
 
 {- $destructors
@@ -159,21 +151,25 @@ points f d = keepIdentity f <-$> reveal d
 flatten ::
   (Applicative f)
     => f a               -- ^ Default values
-    -> SubZero f Maybe a -- ^ Structured container
+    -> Compose f Maybe a -- ^ Structured container
     -> f a               -- ^ Destructured container
-flatten a (SubZero (Compose b)) = fromMaybe <$> a <*> b
+flatten a (Compose b) = fromMaybe <$> a <*> b
 
 {-  $restructors
 -}
 
 {- | fmap below the zeropoint
 -}
-(<-$>) :: (Functor f) => (g a -> h a) -> SubZero f g a -> SubZero f h a
-f <-$> (SubZero (Compose o)) = (SubZero . Compose) $ f <$> o
+(<-$>) :: (Functor f) => (g a -> h a) -> Compose f g a -> Compose f h a
+f <-$> (Compose o) = Compose $ f <$> o
 
-{- | fmap below the zeropoint, function variant of <-$> operator
+{- | fmap below the zeropoint, function variant of '<-$>' operator
 -}
 universal f s = f <-$> s
+
+{- | Alternative below the zeropoint
+-}
+(Compose a) <-|> (Compose b) = Compose $ (<|>) <$> a <*> b
 
 -- {- | Take the alternatives embedded in the @'SubZero'@ and collapse them
 --     with a combining function to a single @'Alternative'@ value or empty which
@@ -190,7 +186,7 @@ universal f s = f <-$> s
 
     @g@ must form a monoid under @f@ when @'empty'@ is the monoid's identity.
 -}
-class (Alternative g, Alternative h) => Superposition g h where
+class (Applicative g, Applicative h) => Superposition g h where
   {- | Tries to convert from one alternative to another
   -}
   simplify :: g a -> Maybe (h a)
@@ -207,7 +203,7 @@ class (Alternative g, Alternative h) => Superposition g h where
 
 {- | Superposition within a nondeterminism list (ie, [])
     This is roughly the same as
-    @'SuperPosition' ('SubZero' 'Data.Functor.Identity.Identity' []) h@
+    @'SuperPosition' ('Compose' 'Data.Functor.Identity.Identity' []) h@
     but of course they have different instances of other typeclasses and
     if that were really true then it would be SuperPositions of Identity
     all the way down.
@@ -219,9 +215,9 @@ instance (Alternative h) => Superposition [] h where
   collapse _ []   = empty
   collapse f l    = pure $ foldl1 f l
 
-{- | Superposition within @'SubZero' * g@
+{- | Superposition within @'Compose' * g@
 -}
-instance (Applicative f, Superposition g h) => Superposition (SubZero f g) (SubZero f h) where
+instance (Applicative f, Superposition g h) => Superposition (Compose f g) (Compose f h) where
   -- | TODO: universal simplify, but if any points are @'Nothing'@ then the whole is @'Nothing'@
   simplify   = undefined 
   -- | universal collapse, each point is collapsed
@@ -235,13 +231,17 @@ instance (Applicative f, Superposition g h) => Superposition (SubZero f g) (SubZ
 
 -}
 
-keep :: (Alternative f) => (a -> Bool) -> a -> f a
-{- ^ Turns a value "@a@" to @'Just' a@ or @'Nothing'@ based on a predicate assuming you use it in a
+{- | Turns a value "@a@" to @'Just' a@ or @'Nothing'@ based on a predicate assuming you use it in a
    context that wants @'Maybe' a@ instead of some other representation of @'Alternative'@s
 -}
+keep :: (Alternative f) => (a -> Bool) -> a -> f a
 keep f x | f x       = pure x
          | otherwise = empty
 
+{- | Does the same as 'keep' for values at the other end of 'Identity'.
+
+   prop> keep = (keepIdentity . Identity) f
+-}
 keepIdentity :: (Alternative f) => (a -> Bool) -> Identity a -> f a
 keepIdentity f x = keep f $ runIdentity x
 

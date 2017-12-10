@@ -20,6 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 import Control.Applicative
 import Control.Applicative.SubZero
+import Data.Functor.Compose
 import System.Exit
 
 main :: IO ()
@@ -33,8 +34,8 @@ fizzbuzz indexes = let isMultiple n x = x `mod` n == 0 in
                    let buzzes = "Buzz" <$ buzzpoints in
 
 
-                   let substitutions :: SubZero _ [] _
-                       substitutions = fizzes <|> buzzes in
+                   let substitutions :: Compose _ [] _
+                       substitutions = fizzes <-|> buzzes in
 
                    let words = collapse (++) substitutions in
                    flatten numbers words
