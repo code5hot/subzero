@@ -28,8 +28,35 @@ with this program; if not, write to the Free Software Foundation, Inc.,
     Maintainer  : tristan.wibberley@gmail.com
     Stability   : experimental
 
-    Here is a longer description of this module, containing some
-    commentary with @some markup@.
+   Converts a functor so that each point at the source has alternatives
+   to model things like a container of optional values, or of a variety
+   of opinions about a point.
+
+   It turns out that 'Data.Functor.Compose.Compose' is ideal for this
+   because @'Functor' f => f a@ is isomorphic to @'Functor' f =>
+   'Data.Functor.Compose.Compose' f 'Data.Functor.Identity.Identity' a@.
+
+   The gorgeous result is that two @'ZipList'@s of alternatives can zip
+   together, providing an expanding set of alternatives to each point.
+
+   He's how you can interpret @'Data.Functor.Compose.Compose' f g a@:
+
+   [@f@]: The major functor, overall mapping/view
+   [@g@]: This has a a few key useful interpretations depending on
+       its instances, examples below.
+   [@a@]: Transformed/contained value type.
+
+   Some example instances that you might want to rely on from @g@:
+
+   [@'Alternative'@]: Superposition functor.
+
+       - How do individual items have a set of
+       possible values?
+       - How do those possible values collapse to
+       form one optional value?
+       - etc.
+
+   [etc]: There are a lot of other utilities for this type.
 -}
 module Control.Applicative.SubZero
     ( -- * Constructors
@@ -59,37 +86,6 @@ import Data.Maybe
 import Data.Function
 import Data.Functor.Compose
 import Data.Functor.Identity
-
-{- |
-   Converts a functor so that each point at the source has alternatives.
-
-   It's just like Compose but the applicative instance appends new
-   alternative values in the rightmost (inner/minor) functor instead of
-   in the leftmost (outer/major) functor.
-
-   The result is that two @'ZipList'@s of alternatives zip together,
-   providing alternatives to each point.
-
-   Given the immediate utility of this, I do wonder if the @'Alternative'@
-   instance of @'Compose'@ is the wrong one.
-
-   [@f@]: The major functor, overall mapping/view
-   [@g@]: This has a a few key useful interpretations depending on
-       its instances, examples below.
-   [@a@]: Transformed/contained value type.
-
-   Some example instances that you might want to rely on from @g@:
-
-   [@'Alternative'@]: Superposition functor.
-
-       - How do individual items have a set of
-       possible values?
-       - How do those possible values collapse to
-       form one optional value?
-       - etc.
-
-   [etc]: There are a lot of other utilities for this type.
--}
 
 {-  $constructors
 -}

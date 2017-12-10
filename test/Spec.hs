@@ -22,7 +22,10 @@ import System.Exit
 import Control.Applicative.SubZero.Examples
 import Control.Applicative (ZipList(ZipList), getZipList)
 import Data.Functor.Identity
+import Data.Map.IMap
 import Test.Hspec
+
+foldDup1 f a = f a a
 
 main :: IO ()
 main = hspec $ do
@@ -50,10 +53,21 @@ main = hspec $ do
         fizzbuzz (Right 15) `shouldBe` (Right "FizzBuzz" :: Either () _)
        
       it "does that for 'ZipList'" $ do
-        let indexes  = ZipList $ take 15 [1..]
-            expected = ZipList ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]
+        let indexes  = ZipList $ take 15 [1 :: Integer ..]
+            the_expected = ZipList [    "1",    "2",    "Fizz",    "4"
+                                   , "Buzz", "Fizz",       "7",    "8"
+                                   , "Fizz", "Buzz",      "11", "Fizz"
+                                   ,   "13",   "14","FizzBuzz"]
 
-        fizzbuzz indexes `shouldBe` expected
+        fizzbuzz indexes `shouldBe` the_expected
+
+      it "does that for 'IMap'" $ do
+        let indexes  = fromList $ foldDup1 (,) <$> ([1,2,3,4,5,6,7,8,12,13,14,15] :: [Integer])
+            the_expected = fromList [ ( 1,   "1"), ( 2,   "2"), ( 3,"Fizz"), ( 4,       "4")
+                                    , ( 5,"Buzz"), ( 6,"Fizz"), ( 7,   "7"), ( 8,       "8")
+                                    , (12,"Fizz"), (13,  "13"), (14,  "14"), (15,"FizzBuzz")]
+
+        fizzbuzz indexes `shouldBe` the_expected
 
     it "passes through the failure value of the functor untouched" $ do
       fizzbuzz Nothing `shouldBe` Nothing

@@ -15,7 +15,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 name:                subzero
-version:             0.1.0.5
+version:             0.1.0.6
 synopsis:            Helps when going "seed values" -> alternatives and optional -> answers
 description: >
     Types to support turning structured collections of seed values
@@ -38,7 +38,9 @@ library
   hs-source-dirs:      src
   exposed-modules:     Control.Applicative.SubZero
                      , Control.Applicative.SubZero.Examples
+                     , Data.Map.IMap
   build-depends:       base >= 4.7 && < 5
+                     , containers
   default-language:    Haskell2010
 
 
