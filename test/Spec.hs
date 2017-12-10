@@ -18,32 +18,44 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 {-# LANGUAGE PartialTypeSignatures #-}
 
-import Control.Applicative
-import Control.Applicative.SubZero
-import Data.Functor.Compose
 import System.Exit
+import Control.Applicative.SubZero.Examples
+import Control.Applicative (ZipList(ZipList), getZipList)
+import Data.Functor.Identity
+import Test.Hspec
 
 main :: IO ()
+main = hspec $ do
+  describe "fizzbuzz" $ do
+    describe "returns the fizzbuzz call for each given number" $ do
+      it "does that for 'Identity'" $ do
+        fizzbuzz (Identity  1) `shouldBe` Identity "1"
+        fizzbuzz (Identity  2) `shouldBe` Identity "2"
+        fizzbuzz (Identity  3) `shouldBe` Identity "Fizz"
+        fizzbuzz (Identity  5) `shouldBe` Identity "Buzz"
+        fizzbuzz (Identity 15) `shouldBe` Identity "FizzBuzz"
 
-fizzbuzz indexes = let isMultiple n x = x `mod` n == 0 in
+      it "does that for 'Maybe'" $ do
+        fizzbuzz (Just  1) `shouldBe` Just "1"
+        fizzbuzz (Just  2) `shouldBe` Just "2"
+        fizzbuzz (Just  3) `shouldBe` Just "Fizz"
+        fizzbuzz (Just  5) `shouldBe` Just "Buzz"
+        fizzbuzz (Just 15) `shouldBe` Just "FizzBuzz"
 
-                   let numbers = show <$> indexes in
-                   let fizzpoints = points (isMultiple 3) indexes in
-                   let fizzes = "Fizz" <$ fizzpoints in
-                   let buzzpoints = points (isMultiple 5) indexes in
-                   let buzzes = "Buzz" <$ buzzpoints in
+      it "does that for 'Either'" $ do
+        fizzbuzz (Right  1) `shouldBe` (Right "1"        :: Either () _)
+        fizzbuzz (Right  2) `shouldBe` (Right "2"        :: Either () _)
+        fizzbuzz (Right  3) `shouldBe` (Right "Fizz"     :: Either () _)
+        fizzbuzz (Right  5) `shouldBe` (Right "Buzz"     :: Either () _)
+        fizzbuzz (Right 15) `shouldBe` (Right "FizzBuzz" :: Either () _)
+       
+      it "does that for 'ZipList'" $ do
+        let indexes  = ZipList $ take 15 [1..]
+            expected = ZipList ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]
 
+        fizzbuzz indexes `shouldBe` expected
 
-                   let substitutions :: Compose _ [] _
-                       substitutions = fizzes <-|> buzzes in
+    it "passes through the failure value of the functor untouched" $ do
+      fizzbuzz Nothing `shouldBe` Nothing
+      fizzbuzz (Left "message") `shouldBe` Left "message"
 
-                   let words = collapse (++) substitutions in
-                   flatten numbers words
-
-main = let indexes = ZipList [1..] in -- mostly lattice-like uses, not nondeterminism
-       let result = fizzbuzz indexes in
-       let check_answers = take 15 $ getZipList $ result in
-       do putStrLn $ show check_answers
-          if check_answers == ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]
-           then exitSuccess
-           else exitFailure
