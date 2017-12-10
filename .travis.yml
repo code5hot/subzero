@@ -21,7 +21,7 @@ ghc:
 before_install:
  - cabal update
 install:
- - cabal install hscolour 
+ - cabal install hscolour hspec
 script:
  - cabal build
  - cabal test
