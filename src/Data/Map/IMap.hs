@@ -28,8 +28,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 -}
 module Data.Map.IMap 
     ( IMap
+    , IsMap
     , fromList
     , intersectionWith
+    , mapmap
+    , Key
     ) where
 
 import qualified Data.Map as M

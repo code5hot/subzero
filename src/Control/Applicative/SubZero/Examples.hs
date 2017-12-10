@@ -44,6 +44,7 @@ import Data.Functor.Compose
      - 'Maybe'
      - 'Either'
      - 'Control.Applicative.ZipList'
+     - 'Data.Map.IMap.IMap'
 -}
 fizzbuzz indexes = let isMultiple n x = x `mod` n == 0
 
