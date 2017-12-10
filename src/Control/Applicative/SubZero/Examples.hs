@@ -45,18 +45,18 @@ import Data.Functor.Compose
      - 'Either'
      - 'Control.Applicative.ZipList'
 -}
-fizzbuzz indexes = let isMultiple n x = x `mod` n == 0 in
+fizzbuzz indexes = let isMultiple n x = x `mod` n == 0
 
-                   let numbers = show <$> indexes in
-                   let fizzpoints = points (isMultiple 3) indexes in
-                   let fizzes = "Fizz" <$ fizzpoints in
-                   let buzzpoints = points (isMultiple 5) indexes in
-                   let buzzes = "Buzz" <$ buzzpoints in
+                       numbers = show <$> indexes
+                       fizzpoints = points (isMultiple 3) indexes
+                       fizzes = "Fizz" <$ fizzpoints
+                       buzzpoints = points (isMultiple 5) indexes
+                       buzzes = "Buzz" <$ buzzpoints
 
+                       substitutions :: Compose _ [] _
+                       substitutions = fizzes <-|> buzzes
 
-                   let substitutions :: Compose _ [] _
-                       substitutions = fizzes <-|> buzzes in
+                       words = collapse (++) substitutions
 
-                   let words = collapse (++) substitutions in
-                   flatten numbers words
+                   in  flatten numbers words
 

@@ -39,10 +39,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
    The gorgeous result is that two @'ZipList'@s of alternatives can zip
    together, providing an expanding set of alternatives to each point.
 
-   He's how you can interpret @'Data.Functor.Compose.Compose' f g a@:
+   Here's how you can interpret @'Data.Functor.Compose.Compose' f g a@:
 
    [@f@]: The major functor, overall mapping/view
-   [@g@]: This has a a few key useful interpretations depending on
+   [@g@]: This has a few key useful interpretations depending on
        its instances, examples below.
    [@a@]: Transformed/contained value type.
 
@@ -199,9 +199,9 @@ class (Applicative g, Applicative h) => Superposition g h where
 
 {- | Superposition within a nondeterminism list (ie, [])
     This is roughly the same as
-    @'SuperPosition' ('Compose' 'Data.Functor.Identity.Identity' []) h@
+    @'Superposition' ('Compose' 'Data.Functor.Identity.Identity' []) h@
     but of course they have different instances of other typeclasses and
-    if that were really true then it would be SuperPositions of Identity
+    if that were really true then it would be Superpositions of Identity
     all the way down.
 -}
 instance (Alternative h) => Superposition [] h where
