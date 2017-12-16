@@ -43,13 +43,15 @@ infixl 4 <?>, <?!>
 
 class TotalChoice c where
     type Total c a
-    (<?>)  :: c a ->       c a ->       c a -- ^ choose some remaining
-    (<?!>) :: c a -> Total c a -> Total c a -- ^ choose all remaining
+    (<?>)   :: c a ->       c a ->       c a                     -- ^ choose some remaining
+    (<?!>)  :: c a -> Total c a -> Total c a                     -- ^ choose all remaining
+    (<??>)  :: c a ->       c a -> (forall b. c b -> f b) -> f a -- ^ choose all remaining or else transform
 
 instance TotalChoice Maybe where
     type Total Maybe a = a
-    (<?>)  = (<|>)
-    (<?!>) = flip fromMaybe
+    (<?>)   = (<|>)
+    (<?!>)  = flip fromMaybe
+    (<??>)  = :: c a ->       c a -> (forall b. c b -> f b) -> f a -- ^ choose all remaining or else transform
 
 instance TotalChoice [] where
     type Total [] a = a
@@ -58,8 +60,8 @@ instance TotalChoice [] where
     (a:_) <?!> _ = a
 
 instance (Applicative f, TotalChoice d) => TotalChoice (Compose f d) where
-    type Total (Compose f d) a = f (Total d a)
-    a <?> b                    = (<?>) <-$> a <-*> b
-    (Compose a) <?!> b         = (<?!>) <$> a <*> b
-
+    type Total (Compose f d) a   = f (Total d a)
+    a           <?>  b           = (<?>) <-$> a <-*> b
+    (Compose a) <?!> b           = (<?!>) <$> a <*> b
+    (Compose a) <??> (Compose b) = 
 
