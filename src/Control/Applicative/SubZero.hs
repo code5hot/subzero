@@ -71,6 +71,7 @@ module Control.Applicative.SubZero
     , (<-$>)
     , universal
     , (<-|>)
+    , (<-*>)
     , Superposition
     , simplify
     , collapse
@@ -156,16 +157,21 @@ flatten a (Compose b) = fromMaybe <$> a <*> b
 
 {- | fmap below the zeropoint
 -}
-(<-$>) :: (Functor f) => (g a -> h a) -> Compose f g a -> Compose f h a
+(<-$>) :: (Functor f) => (g a -> h b) -> Compose f g a -> Compose f h b
 f <-$> (Compose o) = Compose $ f <$> o
 
 {- | fmap below the zeropoint, function variant of '<-$>' operator
 -}
 universal f s = f <-$> s
 
+{- | Applicative below the zeropoint
+-}
+(Compose a) <-*> (Compose b) = Compose $ a <*> b
+
 {- | Alternative below the zeropoint
 -}
-(Compose a) <-|> (Compose b) = Compose $ (<|>) <$> a <*> b
+(<-|>) :: (Applicative f, Alternative g) => Compose f g a -> Compose f g a -> Compose f g a
+a <-|> b = (<|>) <-$> a <-*> b
 
 -- {- | Take the alternatives embedded in the @'SubZero'@ and collapse them
 --     with a combining function to a single @'Alternative'@ value or empty which

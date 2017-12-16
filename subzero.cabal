@@ -15,7 +15,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 name:                subzero
-version:             0.1.0.8
+version:             0.1.0.9
 synopsis:            Helps when going "seed values" -> alternatives and optional -> answers
 description: >
     Types to support turning structured collections of seed values
@@ -37,6 +37,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Control.Applicative.SubZero
+                     , Control.Choice
                      , Control.Applicative.SubZero.Examples
                      , Data.Map.IMap
   build-depends:       base >= 4.7 && < 5

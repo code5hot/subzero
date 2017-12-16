@@ -17,3 +17,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 -->
 
 # subzero
+
+This library was created to provide an intuitive description for
+straightforward problems like fizzbuzz.
+
+In the case of fizzbuzz, there is an indexed space which has an
+answer at each point. Ideally we should be able to describe the
+solution in those terms.
+
+In general this library ends up supporting concepts like containers
+of optional values, nondeterministic values, etc.
+
+It's a small library and once perfected, probably ought to be
+a basic facility for anyone from an imperative background.
+
