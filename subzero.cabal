@@ -39,6 +39,7 @@ library
   exposed-modules:     Control.Applicative.SubZero
                      , Control.Choice
                      , Control.Applicative.SubZero.Examples
+                     , Control.Zippy
                      , Data.Map.IMap
   build-depends:       base >= 4.7 && < 5
                      , containers

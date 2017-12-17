@@ -38,6 +38,7 @@ module Control.Applicative.SubZero.Examples
     ) where
 
 import Control.Choice
+import Control.Zippy
 import Control.Applicative.SubZero
 import Data.Functor.Compose
 import Control.Applicative
@@ -45,15 +46,17 @@ import Data.Functor.Identity
 
 {- | Takes values in an 'Applicative' and returns the 
      <https://en.wikipedia.org/wiki/Fizz_buzz fizzbuzz game>'s answer
-     for that value. /Caution/ regular lists will not do what you want, use:
+     for that value. With the introduction of 'Zippy', regular lists
+     will do what you want, so you can use:
 
      - 'Data.Functor.Identity.Identity'
      - 'Maybe'
      - 'Either'
      - 'Control.Applicative.ZipList'
      - 'Data.Map.IMap.IMap'
+     - Lists
 -}
-fizzbuzz :: (Applicative f, Show n, Integral n) => f n -> f String
+fizzbuzz :: (Zippy f, Show n, Integral n) => f n -> f String
 fizzbuzz indexes = let isMultiple n x = x `mod` n == 0
 
                        numbers    = show <$> indexes

@@ -72,6 +72,7 @@ module Control.Applicative.SubZero
     , universal
     , (<-|>)
     , (<-*>)
+    , (<-:>)
     , Superposition
     , simplify
     , collapse
@@ -82,6 +83,7 @@ module Control.Applicative.SubZero
     ) where
 
 import Control.Applicative
+import Control.Zippy
 import Data.Monoid
 import Data.Maybe
 import Data.Function
@@ -146,11 +148,11 @@ points f d = keepIdentity f <-$> reveal d
         [@'Either' a@]:   Not sure exactly what this does, TBC.
 -}
 flatten ::
-  (Applicative f)
+  (Zippy f)
     => f a               -- ^ Default values
     -> Compose f Maybe a -- ^ Structured container
     -> f a               -- ^ Destructured container
-flatten a (Compose b) = fromMaybe <$> a <*> b
+flatten a (Compose b) = fromMaybe <$> a <:> b
 
 {-  $restructors
 -}
@@ -168,10 +170,14 @@ universal f s = f <-$> s
 -}
 (Compose a) <-*> (Compose b) = Compose $ a <*> b
 
+{- | Zip below the zeropoint
+-}
+(Compose a) <-:> (Compose b) = Compose $ a <:> b
+
 {- | Alternative below the zeropoint
 -}
-(<-|>) :: (Applicative f, Alternative g) => Compose f g a -> Compose f g a -> Compose f g a
-a <-|> b = (<|>) <-$> a <-*> b
+(<-|>) :: (Zippy f, Alternative g) => Compose f g a -> Compose f g a -> Compose f g a
+a <-|> b = (<|>) <-$> a <-:> b
 
 -- {- | Take the alternatives embedded in the @'SubZero'@ and collapse them
 --     with a combining function to a single @'Alternative'@ value or empty which
@@ -188,7 +194,7 @@ a <-|> b = (<|>) <-$> a <-*> b
 
     @g@ must form a monoid under @f@ when @'empty'@ is the monoid's identity.
 -}
-class (Applicative g, Applicative h) => Superposition g h where
+class (Functor g, Functor h) => Superposition g h where
   {- | Tries to convert from one alternative to another
   -}
   simplify :: g a -> Maybe (h a)
@@ -219,7 +225,7 @@ instance (Alternative h) => Superposition [] h where
 
 {- | Superposition within @'Compose' * g@
 -}
-instance (Applicative f, Superposition g h) => Superposition (Compose f g) (Compose f h) where
+instance (Zippy f, Superposition g h) => Superposition (Compose f g) (Compose f h) where
   -- | TODO: universal simplify, but if any points are @'Nothing'@ then the whole is @'Nothing'@
   simplify   = undefined 
   -- | universal collapse, each point is collapsed

@@ -25,8 +25,7 @@ import Data.Functor.Identity
 import Data.Map.IMap
 import Data.Map.Lazy (Map)
 import Test.Hspec
-
-foldDup1 f a = f a a
+import Control.Monad
 
 main :: IO ()
 main = hspec $ do
@@ -62,9 +61,18 @@ main = hspec $ do
 
         fizzbuzz indexes `shouldBe` the_expected
 
+      it "does that for '[]'" $ do
+        let indexes  = take 15 [1 :: Integer ..]
+            the_expected = [    "1",    "2",    "Fizz",    "4"
+                           , "Buzz", "Fizz",       "7",    "8"
+                           , "Fizz", "Buzz",      "11", "Fizz"
+                           ,   "13",   "14","FizzBuzz"]
+
+        fizzbuzz indexes `shouldBe` the_expected
+
       it "does that for 'IMap'" $ do
         let indexes :: IMap (Map _) _
-            indexes  = fromList $ foldDup1 (,) <$> ([1,2,3,4,5,6,7,8,12,13,14,15] :: [Integer])
+            indexes  = fromList $ join (,) <$> ([1,2,3,4,5,6,7,8,12,13,14,15] :: [Integer])
             the_expected = fromList [ ( 1,   "1"), ( 2,   "2"), ( 3,"Fizz"), ( 4,       "4")
                                     , ( 5,"Buzz"), ( 6,"Fizz"), ( 7,   "7"), ( 8,       "8")
                                     , (12,"Fizz"), (13,  "13"), (14,  "14"), (15,"FizzBuzz")]

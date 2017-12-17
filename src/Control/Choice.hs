@@ -35,9 +35,10 @@ module Control.Choice
     ) where
 
 import Control.Applicative.SubZero
-import Data.Functor.Compose
 import Control.Applicative
+import Data.Functor.Compose
 import Data.Maybe
+import Control.Zippy
 
 infixl 4 <?>, <?!>
 
@@ -81,9 +82,9 @@ instance TotalChoice [] where
 --   This starts as @'Compose' f d a@ and finishes as @f a@ but I'm not sure
 --   if it would be better to finish as @'Compose' f
 --   'Data.Functor.Identity.Identity' a@
-instance (Applicative f, TotalChoice d) => TotalChoice (Compose f d) where
+instance (Zippy z, TotalChoice d) => TotalChoice (Compose z d) where
     type Total (Compose f d) a = f (Total d a)
-    a <?> b                    = (<?>) <-$> a <-*> b
-    (Compose a) <?!> b         = (<?!>) <$> a <*> b
+    a <?> b                    = (<?>) <-$> a <-:> b
+    (Compose a) <?!> b         = (<?!>) <$> a <:> b
 
 
